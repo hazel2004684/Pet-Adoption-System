@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+// I-import ang imong Firebase configuration instance
+import { db } from "./services/firebase/config"; 
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  onSnapshot,
+  serverTimestamp 
+} from "firebase/firestore";
 
 export default function Home() {
   const [role, setRole] = useState("");
-  
-  // MOCK DATA: Pure frontend state with pink-themed default data if needed
-  const [pets, setPets] = useState([
-    { id: 1, name: "Bantay", breed: "Askal", age: "2 years", gender: "Male", status: "Available" },
-    { id: 2, name: "Muning", breed: "Persian Cat", age: "1 year", gender: "Female", status: "Adopted" },
-    { id: 3, name: "Chikititing", breed: "Shih Tzu", age: "5 months", gender: "Female", status: "Available" },
-  ]);
+  const [pets, setPets] = useState([]); // Blangko na ang default state kay gikan na sa Firebase
 
   const [form, setForm] = useState({
     id: null,
@@ -20,59 +25,93 @@ export default function Home() {
     gender: "",
   });
 
-  // INPUT CHANGE
+  // REALTIME DATABASE CONNECTION (Kini ang mokuha sa data gikan sa Firestore)
+  useEffect(() => {
+    // Mogunit sa "pet" collection sa Firestore
+    const petCollectionRef = collection(db, "pet");
+
+    // onSnapshot magbantay kung naay nausab sa database, awtomatiko i-update ang frontend state
+    const unsubscribe = onSnapshot(petCollectionRef, (snapshot) => {
+      const fetchedPets = snapshot.docs.map((doc) => ({
+        id: doc.id, // Gitipigan ang talagsaong ID gikan sa Firebase
+        ...doc.data(),
+      }));
+      setPets(fetchedPets);
+    });
+
+    // Limpyohan ang tigpaminaw kung sirad-an ang page
+    return () => unsubscribe();
+  }, []);
+
+  // INPUT CHANGE HANDLER
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // CREATE / ADD PET
-  const addPet = () => {
+  // CREATE / ADD PET TO FIRESTORE
+  const addPet = async () => {
     if (!form.name || !form.breed) {
       alert("Palihug butangi og Name ug Breed!");
       return;
     }
 
-    const newPet = {
-      id: Date.now(),
-      name: form.name,
-      breed: form.breed,
-      age: form.age || "N/A",
-      gender: form.gender || "N/A",
-      status: "Available",
-    };
+    try {
+      await addDoc(collection(db, "pet"), {
+        name: form.name,
+        breed: form.breed,
+        age: form.age || "N/A",
+        gender: form.gender || "N/A",
+        status: "Available",
+        createdAt: serverTimestamp(), // Paspas nga timestamp gikan sa server
+      });
 
-    setPets([...pets, newPet]);
-    setForm({ id: null, name: "", breed: "", age: "", gender: "" });
+      setForm({ id: null, name: "", breed: "", age: "", gender: "" });
+    } catch (error) {
+      console.error("Error adding pet to Firebase:", error);
+      alert("Wala nadugang ang pet. Susiha ang console logs.");
+    }
   };
 
-  // UPDATE PET
-  const updatePet = () => {
+  // UPDATE PET IN FIRESTORE
+  const updatePet = async () => {
     if (!form.id) return;
 
-    setPets(
-      pets.map((pet) =>
-        pet.id === form.id
-          ? { ...pet, name: form.name, breed: form.breed, age: form.age, gender: form.gender }
-          : pet
-      )
-    );
+    try {
+      const petDocRef = doc(db, "pet", form.id);
+      await updateDoc(petDocRef, {
+        name: form.name,
+        breed: form.breed,
+        age: form.age,
+        gender: form.gender,
+      });
 
-    setForm({ id: null, name: "", breed: "", age: "", gender: "" });
+      setForm({ id: null, name: "", breed: "", age: "", gender: "" });
+    } catch (error) {
+      console.error("Error updating pet in Firebase:", error);
+    }
   };
 
-  // DELETE PET
-  const deletePet = (id) => {
+  // DELETE PET FROM FIRESTORE
+  const deletePet = async (id) => {
     if (!confirm("Sigurado ka nga gusto nimo i-delete kini nga pet?")) return;
-    setPets(pets.filter((pet) => pet.id !== id));
+
+    try {
+      await deleteDoc(doc(db, "pet", id));
+    } catch (error) {
+      console.error("Error deleting pet from Firebase:", error);
+    }
   };
 
-  // ADOPT PET
-  const adoptPet = (id) => {
-    setPets(
-      pets.map((pet) =>
-        pet.id === id ? { ...pet, status: "Adopted" } : pet
-      )
-    );
+  // ADOPT PET IN FIRESTORE
+  const adoptPet = async (id) => {
+    try {
+      const petDocRef = doc(db, "pet", id);
+      await updateDoc(petDocRef, {
+        status: "Adopted",
+      });
+    } catch (error) {
+      console.error("Error adopting pet in Firebase:", error);
+    }
   };
 
   return (

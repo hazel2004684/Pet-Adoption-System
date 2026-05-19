@@ -15,5 +15,6 @@ const firebaseConfig = {
 // Siguraduhon nga dili magdoble og initialize ang Firebase sa Next.js
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
+export const auth = getAuth(app);
 
 export { db };
