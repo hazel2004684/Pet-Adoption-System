@@ -1,5 +1,3 @@
-
-// src/firebase.js
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -13,9 +11,6 @@ const firebaseConfig = {
   appId: "1:956546374207:web:a583773b7c061a3608f68a"
 };
 
-// Siguraduhon nga dili magdoble og initialize ang Firebase sa Next.js
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
 export const auth = getAuth(app);
-
-export { db };
+export const db = getFirestore(app);
