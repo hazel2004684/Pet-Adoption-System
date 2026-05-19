@@ -26,6 +26,13 @@ export default function Home() {
     setIsAuthView(false);
   };
 
+  useEffect(() => {
+    const persistedRole = window.localStorage.getItem("selectedRole");
+    if (persistedRole) {
+      setRole(persistedRole);
+    }
+  }, []);
+
   // PET DATABASE STATES
   const [pets, setPets] = useState([]);
   const [form, setForm] = useState({ id: null, name: "", breed: "", age: "", gender: "" });
@@ -59,6 +66,8 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      window.localStorage.removeItem("selectedRole");
+      setRole("");
     } catch (error) {
       console.error("Logout Error:", error);
     }
@@ -128,14 +137,14 @@ export default function Home() {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => { setRole("admin"); setIsAuthView(true); }}
+                onClick={() => { setRole("admin"); window.localStorage.setItem("selectedRole", "admin"); setIsAuthView(true); }}
                 className="bg-pink-400 hover:bg-pink-500 text-black font-black px-6 py-3.5 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
               >
                 Admin Dashboard
               </button>
 
               <button
-                onClick={() => { setRole("customer"); setIsAuthView(true); }}
+                onClick={() => { setRole("customer"); window.localStorage.setItem("selectedRole", "customer"); setIsAuthView(true); }}
                 className="bg-pink-300 hover:bg-pink-400 text-black font-black px-6 py-3.5 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
               >
                 Customer View
@@ -151,7 +160,7 @@ export default function Home() {
           <Authentication
             role={role}
             onSuccess={handleAuthSuccess}
-            onCancel={() => { setIsAuthView(false); setRole(""); }}
+            onCancel={() => { setIsAuthView(false); setRole(""); window.localStorage.removeItem("selectedRole"); }}
           />
         </div>
       )}

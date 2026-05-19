@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { auth } from "./services/firebase/config"; // Ensure the import path to config.js is correct
 
 export default function Authentication({ role, onSuccess, onCancel }) {
@@ -12,9 +12,19 @@ export default function Authentication({ role, onSuccess, onCancel }) {
     setLoading(true);
 
     try {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
       const userCredential = await signInWithPopup(auth, provider);
       onSuccess(userCredential.user);
     } catch (error) {
+      if (error.code === "auth/operation-not-supported-in-this-environment" || error.code === "auth/network-request-failed") {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
       console.error("Google Auth Error:", error);
       alert("Google sign-in failed: " + error.message);
     } finally {
