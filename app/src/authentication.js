@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "./services/firebase/config"; // Siguroha nga husto ang folder path padulong sa config.js gikan ani nga file
+import { auth } from "./services/firebase/config"; // Ensure the import path to config.js is correct
 
 export default function Authentication({ role, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export default function Authentication({ role, onSuccess, onCancel }) {
       onSuccess();
     } catch (error) {
       console.error("Google Auth Error:", error);
-      alert("Napakyas ang pag-login gamit ang Google: " + error.message);
+      alert("Google sign-in failed: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -28,7 +28,7 @@ export default function Authentication({ role, onSuccess, onCancel }) {
         🔐 {role.toUpperCase()} Access
       </h2>
       <p className="text-sm text-neutral-800 font-bold mb-6">
-        Kinahanglan mo-verify gamit ang Google para makasulod sa dashboard.
+        You need to verify with Google to access the dashboard.
       </p>
 
       <button
@@ -44,7 +44,7 @@ export default function Authentication({ role, onSuccess, onCancel }) {
         onClick={onCancel}
         className="text-xs font-black text-red-600 block mx-auto hover:underline mt-6"
       >
-        ◀ Balik sa Pagpili og Role
+        ◀ Back to Role Selection
       </button>
     </div>
   );

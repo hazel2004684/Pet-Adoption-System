@@ -65,7 +65,7 @@ export default function Home() {
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const addPet = async () => {
-    if (!form.name || !form.breed) return alert("Palihug butangi og Name ug Breed!");
+    if (!form.name || !form.breed) return alert("Please provide Name and Breed!");
     try {
       await addDoc(collection(db, "pet"), {
         name: form.name,
@@ -97,7 +97,7 @@ export default function Home() {
   };
 
   const deletePet = async (id) => {
-    if (!confirm("Sigurado ka nga gusto nimo i-delete kini nga pet?")) return;
+    if (!confirm("Are you sure you want to delete this pet?")) return;
     try {
       await deleteDoc(doc(db, "pet", id));
     } catch (error) {
@@ -121,7 +121,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6 text-center max-w-md mx-auto px-4">
           <div className="bg-pink-50 p-8 rounded-3xl shadow-xl w-full border-4 border-pink-300">
             <h1 className="text-3xl font-black text-black mb-2">🐾 Pet Adoption</h1>
-            <p className="text-black font-medium mb-6 text-sm">Pilia kung unsa imong role aron makasugod.</p>
+            <p className="text-black font-medium mb-6 text-sm">Choose your role to get started.</p>
 
             <div className="flex flex-col gap-3">
               <button
@@ -202,7 +202,7 @@ export default function Home() {
                 />
                 <input
                   name="breed"
-                  placeholder="Breed (e.g., Askal)"
+                  placeholder="Breed (e.g., Mixed-breed)"
                   className="border-2 border-black p-3 rounded-xl bg-white text-black placeholder-neutral-700 font-bold text-sm focus:outline-none"
                   value={form.breed}
                   onChange={handleChange}
@@ -260,8 +260,8 @@ export default function Home() {
           {pets.length === 0 ? (
             <div className="text-center bg-pink-50 p-10 rounded-2xl border-4 border-pink-300 text-black">
               <p className="text-3xl mb-2">🏝️</p>
-              <p className="font-black text-sm">Walay pets sa listahan.</p>
-              {role === "admin" && <p className="text-xs font-bold mt-1">Sulayi pag-add gamit ang form sa babaw.</p>}
+              <p className="font-black text-sm">No pets in the list.</p>
+              {role === "admin" && <p className="text-xs font-bold mt-1">Try adding one using the form above.</p>}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
