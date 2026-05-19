@@ -6,20 +6,20 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
-// 1. SIGN UP / REGISTRATION (Adopter o Admin)
+// 1. SIGN UP / REGISTRATION (Adopter or Admin)
 export const registerUser = async (email, password, fullName, phone) => {
   try {
-    // Maghimo og user sa Firebase Authentication
+    // Create a new user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // I-save sab ang iyang detalye sa Firestore 'users' collection gamit iyang UID
+    // Save the user details in the Firestore 'users' collection using the UID
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       fullName: fullName,
       email: email,
       phone: phone,
-      role: "adopter", // Default role para sa bag-ong nag-register
+      role: "adopter", // Default role for a new registration
       createdAt: new Date()
     });
 

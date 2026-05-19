@@ -15,9 +15,9 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import Authentication from "./src/authentication";
 
 export default function Home() {
-  const [role, setRole] = useState(""); // "admin" o "customer"
-  const [user, setUser] = useState(null); // Maggunit sa naka-login nga user
-  const [isAuthView, setIsAuthView] = useState(false); // Pag-toggle sa Auth screen
+  const [role, setRole] = useState(""); // "admin" or "customer"
+  const [user, setUser] = useState(null); // Holds the logged-in user
+  const [isAuthView, setIsAuthView] = useState(false); // Toggles the auth screen
 
   const handleAuthSuccess = () => {
     setIsAuthView(false);
@@ -27,7 +27,7 @@ export default function Home() {
   const [pets, setPets] = useState([]);
   const [form, setForm] = useState({ id: null, name: "", breed: "", age: "", gender: "" });
 
-  // 1. MONITOR USER LOGINS UG REALTIME DATA
+  // 1. Monitor user login and realtime data
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -142,7 +142,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* STEP 2: GOOGLE AUTHENTICATION GATE (Giusab: Mas simple na) */}
+      {/* STEP 2: GOOGLE AUTHENTICATION GATE (Updated: simpler view) */}
       {isAuthView && !user && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] max-w-md mx-auto px-4">
           <Authentication
