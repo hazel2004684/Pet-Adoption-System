@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, auth } from "./services/firebase/config"; 
+import { db, auth } from "./src/services/firebase/config";
 import { 
   collection, 
   addDoc, 
@@ -11,18 +11,17 @@ import {
   onSnapshot,
   serverTimestamp 
 } from "firebase/firestore";
-// Giusab: Gi-import ang GoogleAuthProvider ug signInWithPopup
-import { 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
-} from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import Authentication from "./src/authentication";
 
 export default function Home() {
   const [role, setRole] = useState(""); // "admin" o "customer"
   const [user, setUser] = useState(null); // Maggunit sa naka-login nga user
   const [isAuthView, setIsAuthView] = useState(false); // Pag-toggle sa Auth screen
+
+  const handleAuthSuccess = () => {
+    setIsAuthView(false);
+  };
 
   // PET DATABASE STATES
   const [pets, setPets] = useState([]);
@@ -54,18 +53,6 @@ export default function Home() {
   }, []);
 
   // 2. GOOGLE AUTHENTICATION FUNCTION
-  const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      // Mo-popup ang bintana sa Google para papilion og Gmail account
-      await signInWithPopup(auth, provider);
-      setIsAuthView(false); // Isira ang auth view kung malampuson
-    } catch (error) {
-      console.error("Google Auth Error:", error);
-      alert("Napakyas ang pag-login gamit ang Google: " + error.message);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -158,29 +145,11 @@ export default function Home() {
       {/* STEP 2: GOOGLE AUTHENTICATION GATE (Giusab: Mas simple na) */}
       {isAuthView && !user && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] max-w-md mx-auto px-4">
-          <div className="bg-pink-50 p-6 sm:p-8 rounded-3xl shadow-xl w-full border-4 border-pink-300 text-center">
-            <h2 className="text-2xl font-black text-black mb-2 uppercase tracking-wide">
-              🔐 {role} Access
-            </h2>
-            <p className="text-sm text-neutral-800 font-bold mb-6">
-              Kinahanglan mo-verify gamit ang Google para makasulod sa dashboard.
-            </p>
-
-            {/* GOOGLE SIGN IN BUTTON */}
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-2 bg-white hover:bg-neutral-100 text-black font-black py-3.5 px-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
-            >
-              <span className="text-lg">🌐</span> Sign in with Google
-            </button>
-
-            <button
-              onClick={() => { setIsAuthView(false); setRole(""); }}
-              className="text-xs font-black text-red-600 block mx-auto hover:underline mt-6"
-            >
-              ◀ Balik sa Pagpili og Role
-            </button>
-          </div>
+          <Authentication
+            role={role}
+            onSuccess={handleAuthSuccess}
+            onCancel={() => { setIsAuthView(false); setRole(""); }}
+          />
         </div>
       )}
 
