@@ -11,40 +11,33 @@ import {
   onSnapshot,
   serverTimestamp 
 } from "firebase/firestore";
-// I-import ang mga functions gikan sa Firebase Authentication
+// Giusab: Gi-import ang GoogleAuthProvider ug signInWithPopup
 import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
   onAuthStateChanged 
 } from "firebase/auth";
 
 export default function Home() {
   const [role, setRole] = useState(""); // "admin" o "customer"
   const [user, setUser] = useState(null); // Maggunit sa naka-login nga user
-  const [isAuthView, setIsAuthView] = useState(false); // Kung tinuod, ipakita ang Auth Form
-  const [isSignup, setIsSignup] = useState(false); // Toggle tali sa Login ug Signup
-
-  // AUTH INPUT STATES
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isAuthView, setIsAuthView] = useState(false); // Pag-toggle sa Auth screen
 
   // PET DATABASE STATES
   const [pets, setPets] = useState([]);
   const [form, setForm] = useState({ id: null, name: "", breed: "", age: "", gender: "" });
 
-  // 1. CHANNELS PARA SA REALTIME DATA UG USER STATE
+  // 1. MONITOR USER LOGINS UG REALTIME DATA
   useEffect(() => {
-    // Susiha kung kinsa ang kasalukuyang naka-login
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        setRole(""); // I-reset ang role kung naka-logout
+        setRole(""); 
         setIsAuthView(false);
       }
     });
 
-    // Paminaw sa database updates
     const petCollectionRef = collection(db, "pet");
     const unsubscribeDocs = onSnapshot(petCollectionRef, (snapshot) => {
       const fetchedPets = snapshot.docs.map((doc) => ({
@@ -60,24 +53,16 @@ export default function Home() {
     };
   }, []);
 
-  // 2. AUTHENTICATION FUNCTIONS (Login / Signup / Logout)
-  const handleAuthSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) return alert("Palihug kabta ang email ug password!");
-
+  // 2. GOOGLE AUTHENTICATION FUNCTION
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
     try {
-      if (isSignup) {
-        // REGISTER
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("Success! Gihimo na ang imong account.");
-      } else {
-        // LOGIN
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      setIsAuthView(false); // Isira ang login modal/view inig lampos
+      // Mo-popup ang bintana sa Google para papilion og Gmail account
+      await signInWithPopup(auth, provider);
+      setIsAuthView(false); // Isira ang auth view kung malampuson
     } catch (error) {
-      console.error(error);
-      alert("Error: " + error.message);
+      console.error("Google Auth Error:", error);
+      alert("Napakyas ang pag-login gamit ang Google: " + error.message);
     }
   };
 
@@ -144,7 +129,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-pink-100 p-4 sm:p-6 lg:p-8 text-black">
 
-      {/* STEP 1: ROLE SELECT SCREEN (Kung wala pay napili nga Role ug wala pay Login) */}
+      {/* STEP 1: ROLE SELECT SCREEN */}
       {!role && !isAuthView && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6 text-center max-w-md mx-auto px-4">
           <div className="bg-pink-50 p-8 rounded-3xl shadow-xl w-full border-4 border-pink-300">
@@ -170,76 +155,53 @@ export default function Home() {
         </div>
       )}
 
-      {/* STEP 2: AUTHENTICATION GATE (Mogawas human mapili ang Role pero wala pa ka Login) */}
+      {/* STEP 2: GOOGLE AUTHENTICATION GATE (Giusab: Mas simple na) */}
       {isAuthView && !user && (
         <div className="flex flex-col items-center justify-center min-h-[80vh] max-w-md mx-auto px-4">
-          <div className="bg-pink-50 p-6 sm:p-8 rounded-3xl shadow-xl w-full border-4 border-pink-300">
-            <h2 className="text-2xl font-black text-black mb-1 uppercase tracking-wide text-center">
-              🔐 {role} Auth
+          <div className="bg-pink-50 p-6 sm:p-8 rounded-3xl shadow-xl w-full border-4 border-pink-300 text-center">
+            <h2 className="text-2xl font-black text-black mb-2 uppercase tracking-wide">
+              🔐 {role} Access
             </h2>
-            <p className="text-xs text-neutral-700 font-bold mb-6 text-center">
-              Palihug isulod ang imong mga detalye para makapadayon.
+            <p className="text-sm text-neutral-800 font-bold mb-6">
+              Kinahanglan mo-verify gamit ang Google para makasulod sa dashboard.
             </p>
 
-            <form onSubmit={handleAuthSubmit} className="flex flex-col gap-3">
-              <input
-                type="email"
-                placeholder="Imong Email"
-                className="border-2 border-black p-3 rounded-xl bg-white text-black font-bold text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Imong Password"
-                className="border-2 border-black p-3 rounded-xl bg-white text-black font-bold text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            {/* GOOGLE SIGN IN BUTTON */}
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 bg-white hover:bg-neutral-100 text-black font-black py-3.5 px-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+            >
+              <span className="text-lg">🌐</span> Sign in with Google
+            </button>
 
-              <button
-                type="submit"
-                className="bg-pink-400 hover:bg-pink-500 text-black font-black py-3 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition active:scale-95 mt-2"
-              >
-                {isSignup ? "Mugna og Account" : "Sumulod (Login)"}
-              </button>
-            </form>
-
-            <div className="text-center mt-5 space-y-2">
-              <button
-                onClick={() => setIsSignup(!isSignup)}
-                className="text-xs font-black underline text-neutral-800 block mx-auto hover:text-pink-600"
-              >
-                {isSignup ? "Naa na kay account? Login diri" : "Wala pa kay account? Sign up diri"}
-              </button>
-
-              <button
-                onClick={() => { setIsAuthView(false); setRole(""); }}
-                className="text-xs font-black text-red-600 block mx-auto hover:underline"
-              >
-                ◀ Balik sa Pagpili og Role
-              </button>
-            </div>
+            <button
+              onClick={() => { setIsAuthView(false); setRole(""); }}
+              className="text-xs font-black text-red-600 block mx-auto hover:underline mt-6"
+            >
+              ◀ Balik sa Pagpili og Role
+            </button>
           </div>
         </div>
       )}
 
-      {/* STEP 3: MAIN DASHBOARD (Ipakita lang kung napili ang Role UG naka-login na ang user) */}
+      {/* STEP 3: MAIN DASHBOARD */}
       {role && user && (
         <div className="max-w-6xl mx-auto">
           
           {/* HEADER */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 bg-pink-50 p-4 rounded-2xl border-4 border-pink-300 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
-              <span className="text-2xl">🐶</span>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full border-2 border-black" />
+              ) : (
+                <span className="text-2xl">🐶</span>
+              )}
               <div>
                 <h1 className="text-xl font-black text-black tracking-wide">
                   {role.toUpperCase()} DASHBOARD
                 </h1>
                 <p className="text-xs font-bold text-neutral-700 truncate max-w-[250px] sm:max-w-none">
-                  User: {user.email}
+                  User: {user.displayName || user.email}
                 </p>
               </div>
             </div>
@@ -381,13 +343,13 @@ export default function Home() {
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setForm(pet)}
-                          className="bg-pink-300 hover:bg-pink-400 text-black border-2 border-black py-2 rounded-xl text-sm font-black transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                          className="bg-pink-300 hover:bg-pink-400 text-black border-2 border-black py-2 rounded-xl text-sm font-black transition"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deletePet(pet.id)}
-                          className="bg-pink-400 hover:bg-pink-500 text-black border-2 border-black py-2 rounded-xl text-sm font-black transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                          className="bg-pink-400 hover:bg-pink-500 text-black border-2 border-black py-2 rounded-xl text-sm font-black transition"
                         >
                           Delete
                         </button>
