@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "./services/firebase/config";
+import { auth } from "./services/firebase/config"; // Siguroha nga husto ang folder path padulong sa config.js gikan ani nga file
 
 export default function Authentication({ role, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
