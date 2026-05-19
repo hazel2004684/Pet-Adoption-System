@@ -19,7 +19,10 @@ export default function Home() {
   const [user, setUser] = useState(null); // Holds the logged-in user
   const [isAuthView, setIsAuthView] = useState(false); // Toggles the auth screen
 
-  const handleAuthSuccess = () => {
+  const handleAuthSuccess = (loggedUser) => {
+    if (loggedUser) {
+      setUser(loggedUser);
+    }
     setIsAuthView(false);
   };
 
@@ -150,6 +153,15 @@ export default function Home() {
             onSuccess={handleAuthSuccess}
             onCancel={() => { setIsAuthView(false); setRole(""); }}
           />
+        </div>
+      )}
+
+      {role && !user && !isAuthView && (
+        <div className="flex items-center justify-center min-h-[70vh] px-4">
+          <div className="bg-pink-50 p-6 rounded-3xl border-4 border-pink-300 shadow-xl text-center">
+            <p className="text-lg font-black text-black">Signing in...</p>
+            <p className="text-sm text-neutral-700 mt-2">Please wait while we complete sign in.</p>
+          </div>
         </div>
       )}
 

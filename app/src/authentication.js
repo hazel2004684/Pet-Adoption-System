@@ -12,8 +12,8 @@ export default function Authentication({ role, onSuccess, onCancel }) {
     setLoading(true);
 
     try {
-      await signInWithPopup(auth, provider);
-      onSuccess();
+      const userCredential = await signInWithPopup(auth, provider);
+      onSuccess(userCredential.user);
     } catch (error) {
       console.error("Google Auth Error:", error);
       alert("Google sign-in failed: " + error.message);
